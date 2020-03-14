@@ -1,0 +1,69 @@
+version: "3.7"
+services:
+  frontend:
+    container_name: angularjs
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    networks:
+      - webnet
+    depends_on:
+      - mongo
+      - backend
+    links:
+      - backend
+
+  mongo:
+    container_name: mongodb
+    image: mongo
+    restart: always
+    volumes:
+      - mongodb-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: username
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - 27017:27017
+    networks:
+      - webnet
+
+  mongo-express:
+    container_name: expressjs
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    networks:
+      - webnet
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: username
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+      ME_CONFIG_BASICAUTH_UERNAME: username
+      ME_CONFIG_BASICAUTH_PASSWORD: password
+    depends_on:
+      - mongo
+    links:
+      - mongo
+
+  backend:
+    container_name: nodejs
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "5000:5000"
+    networks:
+      - webnet
+    depends_on:
+      - mongo
+    links:
+      - mongo
+  
+networks:
+  webnet:
+
+volumes:
+  mongodb-data:
